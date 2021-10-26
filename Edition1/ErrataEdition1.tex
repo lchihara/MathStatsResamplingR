@@ -1,0 +1,565 @@
+\documentclass[11pt]{article}
+
+\setlength{\parindent}{0in}
+\input{ChapPrelim2}
+%%%%%%%%%%%%%%%%%%%%%
+
+%For postscript
+%\usepackage[pdftex]{graphicx}
+
+\usepackage[pdftex]{graphicx} \DeclareGraphicsExtensions{.pdf,.png,.jpg,.mps}
+\graphicspath{{.}{./Images/}{../Images/}}
+\usepackage{fancyhdr}
+\usepackage{color}
+\pagestyle{fancy}
+\usepackage{comment}
+
+\lhead{{\em Mathematical Statistics with Resampling and \R}, (First Edition).
+By Laura Chihara and Tim Hesterberg}
+
+\begin{document}
+
+\medskip
+{\bf \Large Errata} (11 January 2018)
+
+\bigskip
+%--------------------------------------------------
+% Preface
+% Corrected 6 October 2011
+Page xiii, paragraph 2, change Waldrop to \textcolor{red}{Wardrop}.
+
+\bigskip
+%--------------------------------------------------
+%Added 27 April 2012
+Page 6, First sentence in Section 1.7. {\color{red}{Whom}} do you plan to vote for...
+
+
+\bigskip
+%Added 6/2/2016
+Page 15, Table 2.3: missing an interval $\textcolor{red}{(300, 350]}$, with frequency
+\textcolor{red}{2}.
+
+
+\bigskip
+%Added 7 January 2012
+Page 23, line 1 and 3.% The pdf should be $f(x)= \textcolor{red}{3}e^{-3x}$:
+
+\smallskip
+Alternatively, since we know the pdf of $X$ is $f(x)=\textcolor{red}{3}e^{-3x}, x\ge 0$, we
+could also solve for $q_p$ in
+
+\[
+p = P(X \le q_p)=\int_0^{q_p}\textcolor{red}{3}e^{-3t}dt.
+\]
+
+
+\bigskip
+%Added 7 January 2012
+Page 26, {\bf \R~Note}: line 11. \\
+Delete: \cmd{abline(v = 25, col= "red")}.\\
+
+Page 26: 4 lines above bottom of box, the legend command should be \\
+\cmd{legend(\textcolor{red}{"topleft"}, legend=c("Males", "Females"), ...)}
+
+\bigskip
+%Added 14 Dec 2012
+Page 29, 2nd line above images: \\
+while a variable with negative \textcolor{red}{kurtosis} is flatter...
+
+\bigskip
+%Added 8 Jan 2013
+Page 30, Exercise 3(c):\\
+ Are there any conditions that would ensure that
+$f(\xbar)$ is the \textcolor{red}{mean} of the transformed data?
+
+\bigskip
+%Added 7 January 2012
+Page 42, Figure 3.3 is incorrect
+\begin{center}
+\includegraphics[scale=.2, angle=-90]{ch03fg3-corrected}
+\end{center}
+
+
+\bigskip
+%Added 14 December 2013
+Page 43 {\bf Remark:} First line\\
+One subtle point is that the transformation need\textcolor{red}{s} to be...
+
+Page 43 Third line of {\bf Remark}: \\
+ example, we used $p=P(\Xbar_1-\Xbar_2 \ge \textcolor{red}{\xbar_1-\xbar_2})$.
+
+\bigskip
+%Added 6/2/2016
+Page 52, second equation $P(T \ge 5) \cdots \ = P(\textcolor{red}{Z} \ge 4.975)$
+
+%Added 7 January 2012
+\bigskip
+Page 53, line 4 from bottom: \\
+For instance, the expected count for the (4, 2)-cell is
+$87\times 409/1307= \textcolor{red}{27.2249}$.\\
+
+Page 53, Table 3.4 The row corresponding to Graduate should be:\\
+\begin{tabular}{rrrrr}
+Graduate & 64 & 50 & \textcolor{red}{114} & 56.6\%
+\end{tabular}
+
+\bigskip
+%Added 7 January 2012
+Page 54, Table 3.5
+
+\begin{tabular}{rrr}
+...&&\\
+HS & 488.5065 & \textcolor{red}{222.4935}\\
+JrColl& 59.7751 & \textcolor{red}{27.2249}
+\end{tabular}
+
+\bigskip
+%Added 7 January 2012
+Page 58 {\bf\R~Note}, line 4: \\
+$>$ \cmd{1 - pchisq(23.45, \textcolor{red}{4})}
+
+\bigskip %14 March 2013
+Page 65, Table, 2nd line:
+
+\begin{tabular}{rrrrr}
+Observed count & 30 & 30 &  \textcolor{red}{22}& 18\\
+\end{tabular}
+
+
+
+
+\bigskip
+Page 65, last unnumbered equation:
+\[
+c = \frac{(30-22)^2}{22}+\frac{(30-30.6)^2}{30.6} +
+\frac{(22-\textcolor{red}{18.6})^2}{\textcolor{red}{18.6}}+\frac{(18-28.7)^2}{28.7}
+=\textcolor{red}{7.53}
+\]
+Under the null hypothesis, the test statistic comes from a chi-square
+distribution with
+4-1 degrees of freedom, so the $P$-value is $P(c\ge 7.53)= \textcolor{red}{0.056}$,
+\textcolor{red}{so it is plausible that
+the data do come from $\Exp{1}$}.
+
+\bigskip %19 January 2014
+Page 67, line 2. $f(x) = P(X = x)=\lambda^x e^{-\textcolor{red}{\lambda}}/x!, x =0, 1, 2,...$
+
+
+\bigskip %April 2014
+Page 68, line 4: \\
+The chi-square statistic is 0.84; the $P$-value is $P(\chi_3^2 > \textcolor{red}{0.84}) = 0.84$.
+
+\bigskip %11 January 2018
+Page 86, Example 4.8\\
+$z=3.917$ so $P(Z \ge 3.917) = 0.00004$.
+
+\bigskip %30 March 2017
+Page 90, Example 4.12\\
+Solution: Then $X \sim \textcolor{red}{\Binom{700}{0.229}}$ with expected value...
+
+\bigskip %15 March 2013
+Page 91 starting with Equation (4.5):
+\[
+P\bigl(\frac{\Xbar-\mu}{\sigma/\sqrt{n}}\le z\bigr)
+\approx \Phi(z) \textcolor{red}{-} \frac{\kappa_3}{6\sqrt{n}}(z^2-1)\Phi^\prime(z)
+\]
+%Added 27 April 2012
+where $\Phi(z)$ is the standard normal {\color{red}{CDF}}, $\Phi^\prime(z)$ is its
+derivative, and $\kappa_3=E\textcolor{red}{[}(X-\mu)^3\textcolor{red}{]}/\sigma^3$.
+
+
+\bigskip
+%Added 7 January 2012
+Page 97, Exercise 29(c). Delete $\Expect{(X-\mu)^3}=1/160$, add period after the word
+density.
+
+\bigskip
+%Added 7 January
+Page 130, Exercise 6(a)\\
+ with $k_1$ occurrences of $a_1$,
+$k_2$ occurrences of \textcolor{red}{$a_2$},....
+
+\bigskip
+%Added 12 January 2015
+Page 131, line 1: \\
+Use simulation \textcolor{red}{(with n = 200)} to generate...
+
+\bigskip
+%Added 12 January 2015
+Page 132, exercise 14(a)\\
+baby girls born in Wyoming and \textcolor{red}{Alaska}...\\
+exercise 14(d) Conduct a permutation test to \textcolor{red}{see if the
+difference in mean weights is statistically significant.}
+
+\bigskip %April 2014
+Page 136, 5 lines above Definition 6.1: \\
+..., compute the derivative
+$\ds L^\prime(p) = 5p^4(1-p)^3 + p^5 3\textcolor{red}{(1-p)^2}(-1)$ and set this...
+
+
+\bigskip
+%Added 8 Sept 2011
+Page 139, line 2 from bottom: \\
+from the exponential distribution with pdf $f(x; \lambda)=\lambda e^{\textcolor{red}{-}\lambda x}$.
+
+\bigskip %Added 12 March 2014
+Page 143, Equation (6.8)\\
+\[
+\frac{\partial(\ln(L(k,\lambda)))}{\partial \sigma}=
+-\frac{n}{\sigma} + \frac{1}{\textcolor{red}{\sigma^3}}\sum_{i=1}^n(x_i-\mu)^2=0.
+\]
+
+
+\bigskip
+Page 145, Equation (6.10)
+
+\[
+  \frac{\partial(\ln(L(k,\lambda)))}{\partial k}
+  = \frac{n}{k} - n\ln({\color{red}{\lambda}}) +\sum_{i=1}^n \ln(x_i)-\sum_{i=1}^n
+     \bigl(\frac{x_i}{\lambda}\bigr)^k\ln(\frac{x_i}{\lambda})=0
+\]
+
+
+\bigskip
+Page 145, Equation (6.13)% the middle term needs a factor $(1/n)$:
+\[
+\frac{1}{k}+{\color{red}{\frac{1}{n}}}\sum_{i=1}^n \ln(x_i) - \frac{1}{\alpha}\sum_{i=1}^n x_i^k\ln(x_i)=0
+\]
+
+
+Page 152, Example 6.13 second paragraph, second line:\\
+ samples of size 25 from $\Unif{0}{12}$. For each sample, we will compute
+ $2\xbar$ and $\textcolor{red}{26/25}\times $...\\
+
+Page 152 {\bf \R~Note}:, 7 lines down
+\begin{verbatim}
+my.max[i] <- 26/25 * max(x)
+\end{verbatim}
+
+
+%--------------------------------------------------
+% \bigskip {\bf Chapter 7: Classical Inference: Confidence Intervals}
+\bigskip
+Page 170 Example 7.2, item 1:\\
+... cars in this company is between \textcolor{red}{29.5} and 33.4 mpg.
+
+%Added 25 March 2015
+Page 178 Paragraph starting with Let $X$ and $Y$...\\
+$\ds X-Y \sim \Norm{\mu_1-\mu_2}{\sigma_{\textcolor{red}{1}}^2 + \sigma_2^2}$
+
+Page 178 Equation (7.9)\\
+$\ds \Norm{\mu_1-\mu_2}{\frac{\sigma_1^2}{n_1}}+\frac{\sigma_{\textcolor{red}{2}}^2}{n_2}$.
+
+\bigskip
+Page 190 {\bf R Note}, last line:\\
+(the interval is $[\textcolor{red}{3422.98}, \infty)$).
+
+
+\bigskip%Added 2 April 2013
+Page 191 Non-numbered equation above (7.17):
+\[
+\bigl(\frac{n}{1.96^2}+1\bigr)p^2 - \bigl(\frac{2n\phat}{1.96^{\textcolor{red}{2}}}
+\textcolor{red}{+ 1}\bigr)p + \frac{n\phat^2}{1.96^{\textcolor{red}{2}}}=0
+\]
+
+
+\bigskip
+Page 193,{\bf Remark (2nd bullet)}: \\
+The center of the score interval is \textcolor{red}{$(\phat + q^2/(2n))(1+q^2/n)$}. If we set...
+
+\bigskip
+Page 194, {\bf Solution}, 2nd equation:\\ % $0.05$ under radical sign should be $0.5$:
+radical sign (see Exercise 22).
+\[
+1.96\sqrt{\frac{{\color{red}{0.5(1-0.5)}}}{\tilde{n}}}\le 0.04
+\]
+
+
+\bigskip %14 March 2013
+Page 196, line 4:\\
+assume that the statistic $T= (\textcolor{red}{\Xbar}-\mu)/(S/\sqrt{n})$ follows...
+
+\bigskip %Added 14 March 2013
+Page 208 \# 34. see Exercise 11, second line:\\
+4 degrees of freedom (see Exercise 11 \textcolor{red}{in Appendix B}). Use...
+
+\bigskip %Added 12 January 2014
+Page 226 {\bf Solution}, last equation:\\
+\[
+P(Y\ge 5 \,|\, \theta=2) = \sum_{k=5}^{8}\binom{8}{k}(0.3185)^k(1-0.3185)^{8-k}
+= \textcolor{red}{0.0736}
+\]
+
+\begin{verbatim}
+> sum(dbinom(5:8, 8, 0.3185))
+> 1- pbinom(4, 8, 0.3185)     #alternatively...
+\end{verbatim}
+
+\bigskip %Added 23 Feb 2014
+Page 244 Exercises \# 28, 29, last sentence in both: \\
+Include a graph similar to Figure \textcolor{red}{8.5}.
+
+%--------------------------------------------------
+% \bigskip {\bf Chapter 9: Regression}
+
+\bigskip
+Page 270, Theorem 9.4 item 4. \\
+$\ds \Var{\hat{\alpha}}=
+\sigma^2\bigl[1/n + {\color{red}{\xbar^2}}/ss_x\bigr]$
+
+\bigskip
+Page 276 {\bf Solution}, first equation:
+\[
+\ds 11.36\sqrt{1 + \frac{1}{24} + \frac{\textcolor{red}{199.7134}}{2195.61}} \approx 12.09
+\]
+
+\bigskip
+Page 294, Exercise 5, second line:\\
+$\Var{Z}=3$ and $\Cov{X}{Y}=-2$, $\Cov{X}{\color{red}{Z}}= -4$, and $\Cov{Y}{Z}=7$.
+
+\bigskip
+Page 295, Exercise 14, 3rd line\\
+is more \textcolor{red}{than} 5\%.
+
+%---------------------------------------
+%\bigskip {\bf Chapter 10: Bayesian Methods}
+%Added 2 Feb 2017
+\bigskip
+Page 304, First displayed equation
+
+\[
+ = \frac{(0.03)\color{red}{(0.128)}}{P(\mbox{WLL})}
+\]
+\bigskip
+Page 309, Top Box:\\
+The {\color{red}{posterior}} distribution is proportional...
+.
+
+\bigskip %April 2014
+Page 318, 2 lines above {\bf Remark}:\\
+ quantiles of $N(45.53, \textcolor{red}{1.953^2})$: the probability that the true...
+
+
+\bigskip
+Page 325, Exercise 9, line 3: \\
+$\mu \sim N(0.72, \textcolor{red}{0.08^2})$. He measures the BMD in ...
+
+
+%--------------------------------------------------
+% \bigskip {\bf Chapter 11: Advanced Topics}
+
+\bigskip
+Page 337, line 1:\\
+case is $\Ybar/\Xbar$ as an estimator for  $r = \mu_{\textcolor{red}{Y}} / \mu_{\textcolor{red}{X}}$.
+
+\bigskip
+Page 337, the paragraph before Equation (11.6) should read:
+
+Using only the first approximation in Equation 11.5,
+% $ \Ybar/\Xbar \approx \mu_Y$,   % (This line in the first edition)
+$ \Ybar/\Xbar \approx \textcolor{red}{r = \mu_Y/\mu_X}$, % This line in the errata
+suggests that the estimate is consistent.
+
+\bigskip
+%Added 20 January 2015
+Page 344 3rd line from bottom:\\
+and then let $h(x) = \sin(x^2)\exp{(-x^2+\textcolor{red}{x})}$.
+
+\bigskip
+Page 344, last line:\\
+domain, ..., and $f\textcolor{red}{(x)}=\exp{-x}I(x > 0)$
+
+%\bigskip
+%Page 337, after Equation (11.6), the next sentence:\\
+%\textcolor{red}{For paired data,}  the estimate is asymptotically
+%normal with mean r and...
+
+\bigskip
+%Added 29 April 2012
+Page 351 Equation (11.20)
+\[
+g(x)=\begin{cases} \lambda \exp{(-\lambda{\color{red}{(x-700)}})} & x \ge 700\\
+        0 & x < 700
+     \end{cases}
+\]
+
+\bigskip
+%Added 11 January 2018
+Page 356, 1st paragraph, 3rd line:\\
+This value is $-200^{\color{red}2}(1/110 + 1/90)$.
+
+
+%--------------------------------------------------
+%Appendix A: Probability Review
+
+\bigskip
+Page 364, Example A.1\\
+\[
+F(x)=P(X\le x) =
+\int_0^x {\color{red}{\lambda}} e^{-\lambda t}\, dt = 1-e^{-\lambda x}
+\]
+
+%--------------------------------------------------
+% \bigskip {\bf Appendix B: Probability Distributions}
+
+\bigskip  %Added 14 March 2013
+Page 394, Exercise 14\\
+Prove that the expected value of $X \sim F_{m, n}$ is ${\color{red}{n}}/(n-2)$ for $n > 2$.
+
+%Appendix
+\bigskip %Added 2 April 2013
+Page 396, Under {\bf Binomial}:\\
+$f(x; n, p) = \binom{n}{x}p^x (1-p)^{\textcolor{red}{n}-x}$\\
+
+Page 396, Under {\bf Geometric}:\\
+$f(x;  p)= (1-p)^{\textcolor{red}{x-1}}p$
+
+\bigskip
+Page 398, Under {\bf Gamma}, last column:\\
+$(1-t/\textcolor{red}{\lambda})^{-r}$\\
+
+Page 398, Under {\bf Uniform}, last column\\
+$\frac{e^{bt}-e^{at}}{(b-a)\color{red}{t}}$
+
+
+%--------------------------------------------------
+
+\newpage
+{\bf Solutions to Odd Exercises}
+
+\medskip
+
+Page 399, Chapter 2 \# 3 (d):
+$f$ is an increasing (or decreasing) function and $n$ is odd,
+\textcolor{red}{or $f$ is linear}.
+
+\bigskip
+%Added 7 January 2012
+Page 399, Chapter 2 \#5(a) Favor: \textcolor{red}{899}, Oppose \textcolor{red}{409}
+
+
+\bigskip
+%Added 7 January 2012
+Page 400 Chapter 2, \# 15.  Delete entire line (so last solution given for
+Chapter 2  is for \# 13.)
+
+
+\bigskip
+Page 400, Chapter 3
+%Added 7 January 2012
+1.(b) The $P$-value is $\textcolor{red}{2}/10 = 0.2$.
+
+\bigskip
+Page 401, 21 $c=8.5819$, $P$-value $= 0.724$.
+
+Page 401, 23(a) Last sentence: ``Conclude that the data do not come from $N(\textcolor{red}{25}, 10^2)$."
+
+\bigskip
+Page 401, Chapter 4
+
+%Added 9 January 2012
+Page 401 3(a): Sampling distribution of $X+Y$ is
+$\{6, 8, 8, 9, 10, 10, 10, 11, 12,\textcolor{red}{12, 13}, 14\}$.\\
+11. \textcolor{red}{$n=90$}.\\
+
+\bigskip
+Page 401 Chapter 4: \\
+{\bf
+The numbering is off---delete the current \# 17 (that is, delete 17. (c) 0.506)
+and renumber those following by 17, 19, 21, 23, 25, 27.}
+
+\bigskip
+%Added 12 March 2014
+Page 402, Chapter 5 \# 17(c) \\
+1\textcolor{red}{.}63, SE = 0.319. (d) (1.17, 2.22).
+
+\bigskip
+Page 402, Chapter 6 \# 17. \\
+Shape = 0.917, scale = 17.344,
+C = \textcolor{red}{14.217, so times between successive earthquakes do
+not follow the Weibull distribution}.
+
+\bigskip
+Page 402, Chapter 6 \# 27(b) \\
+$(\sigma^4/n^2)\color{red}{2(n-1)}$.
+
+
+\bigskip %Added 11 February 2014
+Page 403, Chapter 6 \# 33b Bias: $-17/(27\theta)$, MSE: $589/(2\cdot 9^3\theta^2)$
+
+\bigskip
+Page 403, Chapter 7 \# 7 \\
+\textcolor{red}{118.01}
+
+\bigskip
+Page 403, Chapter 7, \# 9\\
+\textcolor{red}{(28.34, 33.53) cm}.
+
+\bigskip %Added 17 Feb 2013
+Page 403, Chapter 7 \# 13(b) $(\textcolor{red}{11.46664}, \infty)$.
+We are 95\% confident that, on average,
+seedlings grown in fertilized plots grew at least 11.5cm more than seedlings grown
+in non-fertilized plots.
+
+\bigskip %Added 19 Feb
+Page 403, Chapter 7 \# 21(a)\\
+\textcolor{red}{1064}
+
+\bigskip %Added 14 March 2013
+Page 404, Chapter 8 \# 23(b)\\
+\textcolor{red}{0.473}
+
+\bigskip
+Page 404, Chapter 9 \# 3: \\
+\textcolor{red}{133}
+
+\bigskip
+Page 405, Chapter 10 \# 15 (a)\\
+ $f(\theta)=1/\theta^n$, \textcolor{red}{where $\theta > \mbox{max}\{X_1, X_2, \dots, X_N\}$}.
+(b)  Pareto distribution with parameters \textcolor{red}{$\alpha+N$, where
+$\theta >\mbox{max} \{\beta, X_1, X_2, \dots, X_N\}$}. (c) $0.17$.
+
+\bigskip
+Page 405,  Chapter 10 \# 17. (a) The typesetting for the exponential is bad. Should be closer to
+$\theta^n\, e^{\theta\sum_{i=1}^n X_i}$. Also, the answer labeled (c) should be labeled (d).
+
+\begin{verbatim}
+\theta^n\, e^{\theta\sum_{i=1}^n X_i}
+\end{verbatim}
+%--------------------------------------------------
+
+\bigskip
+{\bf Bibliography}
+% References
+
+Page 411, last line, change Waldrop to \textcolor{red}{Wardrop.}
+
+\bigskip
+\hrule
+\bigskip
+
+\paragraph{Acknowledgements}
+Thanks to Sandy Weisberg, Robert Hayden, Charles VanBuskirk, Bob Dobrow,
+Kristin Jehring, Elaine Newman, Katie St.~Clair, John Hohwald, Paul Bamberg, Anne Grosse,
+Susan Coombs, Risako Owan, Eric Nordmoe, Kirk Goff, Ben Levy, Sushmit Roy, Jaehyo Rhee, Bruce McCullough
+and Kirk Goff for providing corrections.
+
+\end{document}
+
+
+% The second approximation,
+% \begin{equation}                        \label{eq:ratioLinear}
+%         \Ybar/\Xbar
+%         \approx r (1 + \Delta_Y - \Delta_X)
+%         = r + (\Ybar - r \Xbar) / \mu_X
+% \end{equation}
+\noindent
+is a constant plus the difference of two sample means
+(times constants).  The mean of the expression is $r$,
+and variance is
+$\Var{\Ybar - r \Xbar}/(\mu_X^2)$.
+We consider two important special cases.
+In the case of two independent samples, the variance
+is $(\sigma^2_Y/n_Y + r^2 \sigma^2_X/nX)/(\mu_X^2)$.
+In the case of paired bivariate observations, the
+variance is $\Var{Y - r X}/(n \mu_X^2)$.
