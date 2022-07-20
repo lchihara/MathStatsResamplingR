@@ -1,0 +1,187 @@
+---
+title: "Introduction to R, part 2"
+author: "Chihara-Hesterberg"
+date: "July 2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width="50%")
+library(resampledata)
+library(ggplot2)
+library(dplyr)
+```
+
+
+### Vectors in R
+
+The basic data object in R is the vector.
+Even scalars are vectors of length 1.
+
+There are several ways to create vectors.
+
+The <tt>:</tt> operator creates sequences incrementing/decrementing
+by 1.
+
+```{r}
+1:10
+5:-3
+```
+
+The <tt>seq</tt> function creates sequences also.
+```{r}
+seq(0, 3, by = .2)
+seq(0, 3, length = 15)
+```
+
+To create vectors with no particular pattern, use the
+<tt>c()</tt> function (<tt>c</tt> for **c**ombine).
+
+```{r}
+c(1, 4, 8, 2, 9)
+x <- c(2, 0, -4)
+x
+c(x, 0:5, x)
+```
+
+For vectors of characters,
+
+```{r}
+c("a", "b", "c", "d")
+```
+
+or logical values (note that there are no double quotes):
+
+```{r}
+c(TRUE, FALSE, FALSE, TRUE, TRUE, FALSE)
+```
+
+The <tt>rep</tt> command for repeating values:
+
+```{r}
+rep("a", 5)
+rep(c("a", "b"), 5)
+rep(c("a", "b"), c(5, 2))
+```
+
+### The  <tt>class</tt> attribute
+
+Use <tt>data.class</tt> to determine the class attribute of an object.
+
+```{r}
+state.name
+data.class(state.name)
+state.name == "Idaho"
+data.class(state.name == "Idaho")
+
+head(FlightDelays$Carrier)
+data.class(FlightDelays$Carrier)
+```
+  
+
+### Basic Arithmetic
+
+```{r}
+x <- 1:5
+x - 3
+x*10
+x/10
+x^2
+2^x
+log(x)
+
+w <- 6:10
+w
+x*w                 #coordinate-wise multiplication
+```
+
+#### Logical expressions
+
+```{r}
+x < 3
+```
+
+### Subsetting a vector
+
+In many cases, we will want only a portion of a data set. For
+subsetting a vector, the basic syntax is <tt>vector[*index*]</tt>.
+In particular, note the use of *brackets* to indicate that we are
+subsetting.
+
+```{r}
+state.name               # 50 states (alphabetical order)
+state.name[c(1, 25, 50)] # the 1st, 25th, and 50th 
+state.name[-(1:10)]      # remove the first 10.
+
+z <- c(8, 3, 0, 9, 9, 2, 1, 3)
+z
+z[4]              # The fourth element of z
+z[c(1, 3, 4)]     # The first, third and fourth element,
+z[-c(1, 3, 4)]    # All elements except the first, third and fourth
+```
+
+To return the values of <tt>z</tt> less than 4, we first introduce the
+<tt>which</tt> command:
+
+```{r}
+which(z < 4)             # which positions are z values < 4?
+index <- which(z < 4)    # store in index
+index
+z[index]                 # return z[c(2, 3, 6, 7)]
+```
+
+Suppose you want to find those observations when the delay length
+was greater than the mean delay length. We'll store this in a vector
+called <tt>index</tt>.
+
+```{r}
+delay <- FlightDelays$Delay
+index <- which(delay > mean(delay))
+head(index)
+```
+
+Thus, observations in rows  2, 10, 12, 14, 15, 16 are the first
+six that correspond to flights that had delays that were larger
+than the average delay length.
+
+### Extracting parts of a data frame
+
+To subset particular rows of a data frame, use the <tt>filter</tt> command in the *dplyr* package.
+
+For example, to create a data frame with just the United Airlines flights:
+```{r}
+United <- FlightDelays %>% filter(Carrier == "UA")
+```
+The <tt>select</tt> command in the **dplyr** package allows you to  extract just certain variables (columns). For example, to create a data frame containing just the <tt>Carrier</tt> and <tt>Delay</tt> variables:
+
+```{r}
+FlightDelays2 <- FlightDelays %>% select(Carrier, Delay)
+```
+Finally, we can combine these two actions to extract just certain rows and certain columns:
+
+```{r}
+United2 <- FlightDelays %>% filter(Carrier == "UA") %>% select(Carrier, Delay)
+```
+
+Now, suppose you want to work with a single variable in a data frame.
+
+```{r}
+delay <- FlightDelays %>% select(Delay)
+head(delay)
+mean(delay)
+data.class(delay)
+```
+The problem is that in the above, the <tt>select</tt> command returns a data frame, and the <tt>mean</tt> command operates on vectors.
+
+If we just want to extract one variable from a data frame and we want that variable to be a vector, use the <tt>pull</tt> command.
+
+```{r}
+delay <- FlightDelays %>% pull(Delay)
+mean(delay)
+
+#Alternatively, we have seen that the $ operator can be used
+delay <- FlightDelays$Delay
+```
+
+
+
