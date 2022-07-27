@@ -3,6 +3,63 @@ library(resampledata3)
 library(ggplot2)
 library(dplyr)
 
+# 
+#Smooth bootstrapping - without and with a transformation
+
+# Verizon data set
+CLEC <- Verizon %>% filter(Group == "CLEC") %>% pull(Time)
+#alternatively, using base R 
+#CLEC <- with(Verizon, subset(Time, Group == "CLEC"))
+
+n <- length(CLEC)
+
+# Show a density curve, corresponding to the smoothed distribution
+# One way: using the built-in 'density' function
+plot(density(CLEC, kernel = "gaussian", bw = sd(CLEC) / sqrt(n)))
+# The smooth bootstrap is equivalent to sampling from that density estimate
+#ggplot2 version
+ggplot(data.frame(CLEC), aes(x = CLEC)) + geom_density(bw=sd(CLEC)/sqrt(n))
+
+
+# Another way - "by hand"
+x <- seq(from = min(CLEC) - 3 * sd(CLEC) / sqrt(n),
+         to = max(CLEC) + 3 * sd(CLEC) / sqrt(n), length = 100)
+y <- 0 * x
+for (i in 1:n) {
+  y <- y + dnorm(x, CLEC[i], sd(CLEC) / sqrt(n)) / n
+}
+plot(x, y, type="l", ylab="Density", xlab = "Time")
+
+# Bootstrap - ordinary, smooth, and smooth with transformation
+# The transformation here is y = log(CLEC + .01), CLEC = exp(y) - .01
+R <- 10^4
+ordinary.replicates <- numeric(R)
+smooth.replicates <- numeric(R)
+smooth.tr.replicates <- numeric(R)
+y <- log(CLEC + .01)  # CLEC = exp(y) - .01
+for (i in 1:R) {
+  indices <- sample(1:n, replace = TRUE, size = n)
+  ordinary.replicates[i] <- median(CLEC[indices])
+  smooth.replicates[i] <- median(CLEC[indices] + rnorm(n, 0, sd(CLEC)/sqrt(n)))
+  y.boot <- y[indices] + rnorm(n, 0, sd(y)/sqrt(n))
+  CLEC.boot <- pmax(0, exp(y.boot) - .01) # pmax to avoid negative times
+  smooth.tr.replicates[i] <- median(CLEC.boot)
+}
+par(mfrow = c(2,2))
+plot(density(ordinary.replicates))
+plot(density(smooth.replicates))
+plot(density(smooth.tr.replicates))
+par(mfrow = c(1,1))
+
+#ggplot2 version
+df <- data.frame(ordinary.replicates, smooth.replicates, smooth.tr.replicates)
+p1 <- ggplot(df, aes(x = ordinary.replicates)) + geom_density()
+p2 <- ggplot(df, aes(x = smooth.replicates)) + geom_density()
+p3 <- ggplot(df, aes(x = smooth.tr.replicates)) + geom_density()
+library(gridExtra)
+grid.arrange(p1, p2, p3, nrow = 2)
+
+#------------------------------------------------------
 #Example 13.2
 #Control variates
 n <- 10^4
