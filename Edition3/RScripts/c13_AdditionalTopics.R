@@ -3,7 +3,7 @@ library(resampledata3)
 library(ggplot2)
 library(dplyr)
 
-# 
+#Section 13.1 
 #Smooth bootstrapping - without and with a transformation
 
 # Verizon data set
