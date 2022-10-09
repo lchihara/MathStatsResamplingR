@@ -6,6 +6,10 @@ library(dplyr)
 # Exercise 7 Checking different test statistics that will give same P-value
 N <- 10^4 - 1
 table(FlightDelays$Carrier)
+
+FlightDelays %>% group_by(Carrier) %>% summarize(mean(Delay), sum(Delay))
+
+#Optionally, using base R
 tapply(FlightDelays$Delay, FlightDelays$Carrier, mean)
 tapply(FlightDelays$Delay, FlightDelays$Carrier, sum)
 
