@@ -1,0 +1,58 @@
+#Chapter 10 Bayesian Methods
+# R scripts
+
+#-----------------------------------
+# Example 11.1
+ theta <- seq(0, 1, by = .1)
+ prior <- c(0, .02, .03, .05, .1, .15, .2, .25, .15, .05, 0)
+ likelihood <- theta * (1 - theta)^2
+ constant <- sum(prior * likelihood)
+ posterior <- prior * likelihood / constant
+ posterior
+ sum(theta * prior)            # prior mean
+ sum(theta * posterior)        # posterior mean
+
+#-----------------------
+ likelihood2 <- theta^3 * (1 - theta)^5   # 3 success, 5 fail
+ constant2 <- sum(prior * likelihood2)
+ posterior2 <- prior * likelihood2 / constant2
+ posterior
+ likelihood3 <- theta^2 * (1 - theta)^3
+ constant3 <- sum(posterior * likelihood3)
+ posterior3 <- posterior * likelihood3 / constant3
+ posterior3                   # not shown, matches posterior2
+ sum(theta*posterior2)        # posterior mean
+
+ plot(theta, prior, type = "b", ylim = c(0, max(posterior3)),
+      ylab = "probability")
+ lines(theta, posterior, type = "b", lty = 2)
+ lines(theta, posterior2, type = "b", lty = 3)
+ legend("topleft", legend = c("prior", "posterior1", "posterior2"),
+        lty = 1:3)
+
+#-------------------------
+# Chapter 11.5 Sequential data
+
+ n <- c(1874, 1867, 1871, 1868, 1875, 1875)
+ X <- c(52, 41, 55, 49, 39, 39)
+ alpha <- X     # vector of posterior parameters
+ beta <- n - X  # vector of posterior parameters
+ N <- 10^5                    # replications
+ theta <- matrix(0.0, nrow = N, ncol = 6)
+ for (j in 1:6)
+ {
+    theta[, j] <- rbeta(N, alpha[j], beta[j])
+ }
+ probBest <- numeric(6)       # vector for results
+ best <- apply(theta, 1, max) # maximum of each row
+ for (j in 1:6)
+ {
+    probBest[j] <- mean(theta[, j] == best)
+ }
+
+ probBest
+
+ plot(theta[1:10^4, 1], theta[1:10^4, 3], pch = ".")
+ abline(0, 1)
+ text(.037, .042, substitute(theta[3] > theta[1]))
+ text(.042, .037, substitute(theta[3] > theta[1]))

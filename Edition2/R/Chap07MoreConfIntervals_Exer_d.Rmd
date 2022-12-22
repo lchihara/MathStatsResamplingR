@@ -1,0 +1,72 @@
+---
+title: "Chap 7 More Confidence Intervals - Exercises"
+author: "Chihara-Hesterberg"
+date: "December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width="50%")
+library(ggplot2)
+library(dplyr)
+```
+
+###Exericse 9
+```{r}
+FlightDelays <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/FlightDelays.csv")
+mu <- mean(FlightDelays$Delay)
+
+counter <- 0
+
+df <- data.frame(x=c(-20,100), y = c(1,100))
+p <- ggplot(df, aes(x = x, y = y))  + geom_vline(xintercept=mu, colour = "red")
+
+for (i in 1:1000)
+{
+ x <- sample(FlightDelays$Delay, 30, replace = FALSE)
+ L <- t.test(x)$conf.int[1]
+ U <- t.test(x)$conf.int[2]
+
+ if (L < mu && mu < U)
+    counter <- counter + 1
+ if (i <= 100)
+  p <- p + annotate("segment", x = L, xend=U, y = i, yend=i )  
+  
+}
+
+
+print(p)
+
+ counter/1000
+```
+
+###Exercise 22
+Simulation to compare pooled/unpooled t-confidence intervals
+```{r}
+pooled.count <- 0
+unpooled.count <- 0
+
+m <- 20
+n <- 10
+
+N <- 10000
+for (i in 1:N)
+{
+    x <- rnorm(m, 8,10)
+    y <- rnorm(n, 3, 15)
+
+    CI.pooled <- t.test(x,y,var.equal=T)$conf
+    CI.unpooled <- t.test(x,y)$conf
+
+    if (CI.pooled[1] < 5 & 5 < CI.pooled[2])
+    pooled.count <- pooled.count + 1
+
+   if (CI.unpooled[1] < 5 & 5 < CI.unpooled[2])
+    unpooled.count <- unpooled.count + 1
+}
+
+pooled.count/N
+
+unpooled.count/N
+
+```

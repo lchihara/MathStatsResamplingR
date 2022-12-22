@@ -1,0 +1,105 @@
+---
+title: "Chapter 4 Sampling Distributions"
+author: "Chihara-Hesterberg"
+date:  "November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width="50%")
+library(dplyr)
+library(ggplot2)
+```
+
+###Example 4.2: Sampling distribution from Exp(1/15)
+```{r}
+Xbar <- numeric(1000)
+#set.seed(300)
+for (i in 1:1000)
+{
+  x <- rexp(100, rate = 1/15)
+  Xbar[i] <- mean(x)
+}
+
+ggplot() + geom_histogram(aes(Xbar), bins = 15) + xlab("means")
+
+df <- data.frame(Xbar)
+ggplot(df, aes(sample=Xbar)) + stat_qq() + stat_qq_line()
+
+mean(Xbar)
+sd(Xbar)
+```
+
+###Example 4.3: Sampling Dist from Unif[0,1]
+```{r}
+maxY <- numeric(1000)
+#set.seed(100)
+for (i in 1:1000)
+ {
+   y <- runif(12)        #draw random sample of size 12
+   maxY[i] <- max(y)     #find max, save in position i
+ }
+
+ggplot() + geom_histogram(aes(maxY), binwidth=.05, center=.975) + xlab("maximums") 
+
+```
+
+To create a histogram with a density curve imposed, we will need to create a data frame that holds the <tt>'maxY'</tt> variable. We also create a function for the density curve $f(x)=12x^{11}$.
+
+
+```{r}
+df <- data.frame(maxY)
+myfun <- function(x){12*x^{11}}
+
+ggplot(df) + geom_histogram(aes(maxY, y = stat(density)), binwidth=.05, center=.975) +xlab("maximums") + stat_function(fun = myfun)
+```
+
+###Example 4.6 Sum of Poisson random variables
+```{r}
+X <- rpois(10^4, 5)   #Draw 10^4 values from Pois(5)
+Y <- rpois(10^4, 12)   #Draw 10^4 values from Pois(12)
+W <- X + Y
+
+df1 <- data.frame(W)
+df2 <- data.frame(x=2:35, y = dpois(2:35,17))
+ggplot(df1, aes(W)) + geom_histogram(aes(y=stat(density)), bins=12) + geom_line(data=df2, aes(x=x, y=y), colour = "red")
+
+mean(W)
+var(W)
+```
+
+###Example 4.7
+Sampling distribution simulation
+Sample of size 30 from gamma r=5, lambda=2
+
+```{r}
+#set.seed(10)
+Xbar <- numeric(1000)
+for (i in 1:1000)
+  {
+    x <- rgamma(30, shape = 5, rate = 2)
+    Xbar[i] <- mean(x)
+  }
+
+ggplot() + geom_histogram(aes(Xbar), bins=15) + labs(title = "Distribution of means")
+
+ggplot() + stat_qq(aes(sample = Xbar)) 
+
+#If you want a line, then
+df <- data.frame(Xbar)
+ggplot(df, aes(sample = Xbar)) + stat_qq() + stat_qq_line()
+
+mean(Xbar)
+sd(Xbar)
+sum(Xbar > 3)/1000
+#alternatively
+mean(Xbar > 3)
+```
+
+###Example 4.11 R Note
+
+```{r}
+dbinom(25, 120, .3)
+
+pbinom(25, 120, .3)
+```

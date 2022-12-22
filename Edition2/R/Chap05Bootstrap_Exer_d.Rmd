@@ -1,0 +1,61 @@
+---
+title: "Chapter 5 Bootstrap - Exercises"
+author: "Chihara-Hesterberg"
+date: "December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+library(ggplot2)
+library(dplyr)
+```
+
+###Exercise 10 
+
+Simulate bootstrap for medians
+```{r}
+ne <- 10000 # n even
+no <- 10001 # n odd
+
+wwe <- rnorm(ne) # draw random sample of size ne
+wwo <- rnorm(no) # draw random sample of size no
+
+N <- 10^4
+even.boot <- numeric(N) #save space
+odd.boot <- numeric(N)
+#set.seed(10)
+for (i in 1:N)
+ {
+  x.even <- sample(wwe, ne, replace = TRUE)
+  x.odd <- sample(wwo, no, replace = TRUE)
+  even.boot[i] <- median(x.even)
+  odd.boot[i]  <- median(x.odd)
+ }
+
+range(even.boot)
+range(odd.boot)
+p1 <- ggplot() + geom_histogram(aes(even.boot),  breaks = seq(-.06, .04, by = .005)) 
+p2 <- ggplot() + geom_histogram(aes(odd.boot), breaks = seq(-.06, .04, by = .005)) 
+
+library(gridExtra)
+grid.arrange(p1,p2)
+
+```
+
+###Exercise 20
+```{r}
+Diving2017 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Diving2017.csv")
+N <- 10^5
+result <- numeric(N)
+for (i in 1:N)
+{
+  index <- sample(12, replace = TRUE)
+  Dive.boot <- Diving2017[index, ]
+  result[i] <- mean(Dive.boot$Final) - median(Dive.boot$Semifinal)
+}
+
+ggplot() + geom_histogram(aes(result), bins = 12)
+
+quantile(result, c(0.025, 0.975))
+```

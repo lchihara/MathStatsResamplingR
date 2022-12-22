@@ -1,0 +1,297 @@
+---
+title: "Chap 13 Additional Topics"
+author: "Chihara-Hesterberg"
+date: "December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+library(ggplot2)
+library(dplyr)
+```
+
+### Chapter 13.2
+
+####Smooth bootstrapping - without and with a transformation
+
+Import the Verizon data set. We first create a density curve corresponding to the smoothed  distribution.
+
+The smooth bootstrap is equivalent to sampling from that density estimate
+
+```{r}
+Verizon <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Verizon.csv")
+CLEC <- Verizon %>% filter(Group == "CLEC") %>% pull(Time)
+
+n <- length(CLEC)
+
+ggplot() + geom_density(aes(CLEC), bw = sd(CLEC)/ sqrt(n))
+```
+
+Another way - "by hand":
+
+```{r}
+x <- seq(from = min(CLEC) - 3 * sd(CLEC) / sqrt(n),
+         to = max(CLEC) + 3 * sd(CLEC) / sqrt(n), length = 100)
+y <- 0 * x
+for (i in 1:n) {
+  y <- y + dnorm(x, CLEC[i], sd(CLEC) / sqrt(n)) / n
+}
+
+df <- data.frame(x, y)
+ggplot(df, aes(x=x, y = y)) + geom_line() + labs(x = "Time", y = "Density")
+```
+
+ Bootstrap - ordinary, smooth, and smooth with transformation
+ The transformation here is $y = \log(CLEC + .01)$, $CLEC = \exp(y) - .01$.
+ 
+```{r}
+R <- 10^4
+ordinary.replicates <- numeric(R)
+smooth.replicates <- numeric(R)
+smooth.tr.replicates <- numeric(R)
+y <- log(CLEC + .01)  # CLEC = exp(y) - .01
+for (i in 1:R) {
+  indices <- sample(1:n, replace = TRUE, size = n)
+  ordinary.replicates[i] <- median(CLEC[indices])
+  smooth.replicates[i] <- median(CLEC[indices] + rnorm(n, 0, sd(CLEC)/sqrt(n)))
+  y.boot <- y[indices] + rnorm(n, 0, sd(y)/sqrt(n))
+  CLEC.boot <- pmax(0, exp(y.boot) - .01) # pmax to avoid negative times
+  smooth.tr.replicates[i] <- median(CLEC.boot)
+}
+
+library(gridExtra)
+p1 <- ggplot() + geom_density(aes(ordinary.replicates))
+p2 <- ggplot() + geom_density(aes(smooth.replicates))
+p3 <- ggplot() + geom_density(aes(smooth.tr.replicates))
+
+grid.arrange(p1, p2, p3)
+```
+
+### Section 13.6
+####Example 13.4
+
+```{r}
+N <- 10^5
+x <- runif(N, 1, 3)   # draw random values from Unif[1, 3]
+out <- 2*exp(-x^2)    # evaluate h at each random x (times (b-a))
+mean(out)     
+
+sd(out) / sqrt(N)     # standard error
+
+integrate(function(x) exp(-x^2), 1, 3)  # adaptive
+```
+
+###Example 13.5
+```{r}
+f0 <- function(u) exp(-25 * abs(u-0.5))    # prior, except constant
+f1 <- function(u) f0(u) * u^215 * (1-u)^110# prior*likelihood
+f2 <- function(u) u * f1(u)                # for expected value
+x <- runif(10^5)
+a <- mean(f0(x))       # constant for prior
+K <- mean(f1(x))       # constant in denom. of E[theta|x=215]
+b <- mean(f2(x))       # numerator of E[theta|x=215]
+c(a, K, b, b/K)        # output all
+
+# Plot the prior and posterior
+curve(f0(x)/a, from = 0, to = 1, ylim = c(0, 15))
+curve(f1(x)/K, col="blue", lty = 2, add = TRUE)
+legend(.05, 14, legend = c("Prior","Posterior"),
+       col = c("black", "blue"), lty = c(1, 2))
+
+
+df <- data.frame(x = x, y = f0(x)/a, w = f1(x)/K)
+ggplot(df) + 
+    geom_line(aes(x = x, y = y, colour = "Prior")) +
+    geom_line(aes(x = x, y = w, colour = "Posterior"), lty = 2) +
+    scale_colour_manual(name = NULL, values = c("Prior" = "black", "Posterior" = "red"))
+
+```
+
+
+###Example 13.6
+```{r}
+x <- rnorm(10^6, 45.53, 1.953)
+out <- 0.088*x^(3.069)
+mean(out)
+```
+
+###Section 13.7 Importance Sampling
+####Example 13.8
+```{r}
+K <- 700     # strike price
+mu <- 500    # mean of the stock price at option date
+sigma <- 120 # sd
+
+# P(option has value)
+pnorm(K, mu, sigma, lower.tail = FALSE)
+```
+
+Define a function g:
+
+```{r}
+g <- function(x) (x - K) * dnorm(x, mu, sigma)
+integrate(g, K, Inf)
+integrate(g, K, Inf)$value / pnorm(K, mu, sigma, lower.tail = FALSE)
+# expected value, and expected value given has value
+```
+
+Alternatively, without explicity defining <tt>`g`</tt>:
+```{r}
+integrate(function(x) (x - K) * dnorm(x, mu, sigma), K, Inf)
+(integrate(function(x) (x - K) * dnorm(x, mu, sigma), K, Inf)$value /
+  pnorm(K, mu, sigma, lower.tail = FALSE))
+```
+ Simulation, without Importance Sampling
+ 
+```{r}
+N <- 10^5
+X <- rnorm(N, mu, sigma)
+payout <- pmax(X-K, 0)
+mean(payout)
+sd(payout) / sqrt(N)
+mean(payout[payout > 0])
+mean(payout > 100)
+```
+
+Importance Sampling, normal with mean = K
+```{r}
+X2 <- rnorm(N, K, sigma)                         # drawing from g
+w2 <- dnorm(X2, mu, sigma) / dnorm(X2, K, sigma) # w2(x) = f(x)/g(x)
+Y2 <- pmax(0, X2-K) * w2                         # h(x) * w(x)
+mean(Y2)
+sd(Y2) / sqrt(N)
+sd(Y2) / sd(payout)
+var(payout) / var(Y2)                            # relative efficiency
+```
+
+```{r}
+lambda <- 1 / sigma  # same standard deviation as the normal
+X3 <- K + rexp(N, lambda)   # g ~ shifted exponential
+w3 <- dnorm(X3, mu, sigma) / dexp(X3 - K, lambda)
+Y3 <- pmax(0, X3-K) *w3
+mean(Y3)
+sd(Y3) / sqrt(N)
+sd(Y3) / sd(payout)
+var(payout) / var(Y3)
+
+df <- data.frame(x = X3[1:300], y = Y3[1:300])
+ggplot(df, aes(x = x, y = y)) + geom_point(pch  = ".") + labs(x = "x", y = "y=h(x)f(x)/g(x)")
+```
+
+
+###Chapter 13.7.2 Importance Sampling in Bayesian Computation
+
+Reproduce Figure 13.9
+```{r}
+likelihood <- function(theta) theta^110 * (1-theta)^90
+logLikelihood <- function(theta) 110*log(theta) + 90*log(1-theta)
+
+N <- 180
+theta <- sort(runif(N))  # Sampling from a uniform distribution
+w <- likelihood(theta)
+
+df <- data.frame(x = c(0,1))
+ggplot(df, aes(x = x)) + stat_function(fun = likelihood)
+
+weight <- w / sum(w)
+
+y <- cumsum(weight)
+df <- data.frame(theta, y)
+
+ggplot(df, aes(x = theta, y = y)) + geom_step() + labs(x = substitute(theta), y = "CDF")
+```
+
+Using calculus, we find the maximum of the log-likelihood occurs at $\theta=110/200$. The second derivative is $-(110/\theta^2 + 90/(1-\theta)^2) = -200^2\times (1/90 + 1/110)=-\sigma^2$.
+
+```{r}
+mu <- 110/200
+sigma <- 1/(200 * sqrt(1/90 + 1/110))
+
+df <- data.frame(x = c(0, 1))
+ggplot(df, aes(x = x)) + stat_function(fun = dnorm, args = list(mu, sigma))
+```
+
+To find the maximum and second derivative numerically in R:
+
+```{r}
+thetaMax <- optimize(logLikelihood, interval = 0:1,
+                     maximum = TRUE)$maximum
+epsilon <- .001
+(logLikelihood(thetaMax + epsilon) +
+ logLikelihood(thetaMax - epsilon)
+ - 2 * logLikelihood(thetaMax)) / epsilon^2  # second derivative
+-200^2*(1/90 + 1/110)               # for comparison, is very close
+```
+
+These commands reproduce Figure 13.10.  Sampling from a normal distribution (no mixture):
+
+```{r}
+theta2 <- sort(rnorm(N, mu, sigma))
+w2 <- likelihood(theta2) / dnorm(theta2, mu, sigma)
+weight2 <- w2 / sum(w2)
+
+df <- data.frame(theta2, y = cumsum(weight2))
+ggplot(df, aes(x = theta2, y = y)) + geom_step() + labs(x = substitute(theta), y = "CDF")
+
+df2 <- data.frame(theta2, weight2)
+ggplot(df2, aes(x = theta2, y = weight2)) + geom_point()
+
+```
+Next we estimate a probability, and standard error for the estimate:
+
+```{r}
+y2 <- (theta2 > .6) * w2         # h(theta) = (theta > .6)
+r2 <- mean(y2) / mean(w2)        # ratio estimate for P(theta > .6)
+r2
+sd(y2 - r2 * w2) / (mean(w2) * sqrt(N))   # standard error
+```
+
+This reproduces Figure 13.11
+```{r}
+# Mixture of 90% normal and 10% uniform
+theta3 <- c(rnorm(.9*N, mu, sigma), runif(.1*N))
+w3 <- likelihood(theta3) / (0.9 * dnorm(theta3, mu, sigma) + 0.1)
+weight3 <- w3 / sum(w3)
+out <- order(theta3)
+
+df <- data.frame(x = theta3[out], y = cumsum(weight3[out]))
+
+ggplot(df, aes(x = x, y = y)) + geom_step() + labs(x = substitute(theta), y = "CDF")
+```
+
+Now,  check to see if weights blow up.
+
+```{r}
+df <- data.frame(x = theta3, y = weight3)
+ggplot(df, aes(x = x, y = y)) + geom_point()
+```
+
+To estimate a probability, and standard error for the estimate based on stratified sampling:
+
+```{r}
+y3 <- (theta3 > .6) * w3         # h(theta) = (theta > .6)
+r3 <- mean(y3) / mean(w3)        # ratio estimate for P(theta > .6)
+r3
+sqrt(.9 * var((y3 - r3 * w3)[1:(.9*N)]) +
+     .1 * var((y3 - r3 * w3)[(.9*N+1):N])) / (mean(w3) * sqrt(N))
+```
+
+###EM Algorithm
+
+R Note:
+
+```{r}
+lambda1 <- 1
+
+for (i in 1:20)
+{
+  beta <- 12/(lambda1 + 3)
+  lambda1 <- (lambda1 + 5)/(beta + 1)
+  lambda2 <- 10/(beta + 1)
+}
+
+beta
+lambda1
+lambda2
+```

@@ -1,0 +1,76 @@
+---
+title: "Chap 11 Bayesian Statistics"
+author: "Chihara-Hesterberg"
+date: "December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+library(ggplot2)
+library(dplyr)
+```
+
+### Example 11.1
+```{r}
+ theta <- seq(0, 1, by = .1)
+ prior <- c(0, .02, .03, .05, .1, .15, .2, .25, .15, .05, 0)
+ likelihood <- theta * (1 - theta)^2
+ constant <- sum(prior * likelihood)
+ posterior <- prior * likelihood / constant
+ posterior
+ sum(theta * prior)            # prior mean
+ sum(theta * posterior)        # posterior mean
+
+
+ likelihood2 <- theta^3 * (1 - theta)^5   # 3 success, 5 fail
+ constant2 <- sum(prior * likelihood2)
+ posterior2 <- prior * likelihood2 / constant2
+ posterior2
+
+ likelihood3 <- theta^2 * (1 - theta)^3
+ constant3 <- sum(posterior * likelihood3)
+ posterior3 <- posterior * likelihood3 / constant3
+ posterior3                   # not shown, matches posterior2
+ sum(theta*posterior2)        # posterior mean
+ 
+ df <- data.frame(theta, prior, posterior, posterior2)
+ 
+ ggplot(df) + 
+   geom_line(aes(x = theta, y = prior, colour = "prior")) +
+   geom_line(aes(x = theta, y = posterior, colour = "posterior")) +
+   geom_line(aes(x = theta, y = posterior2, colour = "posterior2")) +
+   scale_colour_manual(name=NULL, 
+        values= c("prior" = "black", "posterior" = "blue", "posterior2" = "red" ))
+```
+
+### Chapter 11.5 Sequential data
+```{r}
+ n <- c(1874, 1867, 1871, 1868, 1875, 1875)
+ X <- c(52, 41, 55, 49, 39, 39)
+ alpha <- X     # vector of posterior parameters
+ beta <- n - X  # vector of posterior parameters
+ N <- 10^5                    # replications
+ theta <- matrix(0.0, nrow = N, ncol = 6)
+ for (j in 1:6)
+ {
+    theta[, j] <- rbeta(N, alpha[j], beta[j])
+ }
+ probBest <- numeric(6)       # vector for results
+ best <- apply(theta, 1, max) # maximum of each row
+ for (j in 1:6)
+ {
+    probBest[j] <- mean(theta[, j] == best)
+ }
+
+ probBest
+ 
+ df <- as.data.frame(theta[1:10^4, ])
+ names(df) <- paste("x", as.character(1:6), sep = "")
+ 
+ ggplot(df) + geom_point(aes(x = x1, y = x3), pch = ".") +
+   geom_abline(slope = 1, intercept = 0) +
+   annotate("text", x = 0.037, y = 0.042, parse = TRUE, label ="theta[3] > theta[1]") +
+   annotate("text", x = 0.042, y = 0.037, parse = TRUE, label ="theta[1] > theta[3]")
+ 
+```

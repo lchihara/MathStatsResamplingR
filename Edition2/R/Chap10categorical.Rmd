@@ -1,0 +1,153 @@
+---
+title: "Chap 10 Categorical Data"
+author: "Chihara-Hesterberg"
+date: "July 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+```
+
+###Section 10.2
+
+Here is a function that computes the chi-square test statistic
+
+The code below gives a function that is a bit more enhanced than the code in the textbook:
+```{r}
+chisq <- function(observed, print = TRUE) {
+  # Chi-square statistic for independence in a contingency table,
+  # with related data exploration.
+  # observed is the observed contingency table
+
+  observedWithTotals <- cbind(observed, total = rowSums(observed))
+  observedWithTotals <- rbind(observedWithTotals, total = colSums(observedWithTotals))
+  expected <- outer(rowSums(observed), colSums(observed)) / sum(observed)
+  statistic <- sum((observed-expected)^2/expected)
+  if (print){
+  cat("Observed, with totals:\n")
+  print(observedWithTotals)
+  cat("\nRow Fractions:\n")
+  print(round(observed / rowSums(observed), 3))
+  cat("\nColumn Fractions:\n")
+  print(round(observed / rep(colSums(observed), each = nrow(observed)), 3))
+
+  cat("\nExpected:\n")
+  print(round(expected, 1))
+  cat("\nDifference:\n")
+  print(round(observed - expected, 1))
+
+  cat("\nChi-squared statistic for independence:", round(statistic, 1), "\n")
+}
+  return(invisible(statistic))
+}
+```
+Import the General Social Survey data and extract the two variables, <tt>`Education`</tt> and
+<tt>`DeathPenalty`</tt>.
+
+<tt>`Education`</tt> is a factor variable. We use the <tt>`ordered`</tt> command to *order* the levels.
+
+```{r}
+GSS2002 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/GSS2002.csv")
+
+Education <- GSS2002$Education
+DeathPenalty <- GSS2002$DeathPenalty
+
+#Alternatively
+#Education <- subset(GSS2002, select = Education, drop = TRUE)
+#DeathPenalty <- subset(GSS2002, select = DeathPenalty, drop = TRUE)
+
+table(Education, DeathPenalty)  #Education ordered alphabetically
+
+Education <- ordered(GSS2002$Education, levels = c("Left HS", "HS", "Jr Col", "Bachelors", "Graduate"))                    
+table(Education, DeathPenalty)
+```
+
+Use function created above to calculate chi-square test statistic
+
+```{r}
+observedChi2 <- chisq(table(Education, DeathPenalty))
+observedChi2
+```
+
+There are missing values in both variables so we get the row numbers where there is at least one NA. We remove those rows from the two variables and create two new vectors <tt>`Educ2`</tt> and <tt>`DeathPenalty2`</tt> that hold the non-NA values:
+
+```{r}
+str(GSS2002)
+
+index <- which(is.na(Education) | is.na(DeathPenalty))
+
+Educ2 <- Education[-index]
+DeathPenalty2 <-  DeathPenalty[-index]
+```
+Now run the permutation test
+```{r}
+N <- 10^4-1
+result<-numeric(N)
+
+for (i in 1:N)
+ {
+   DP.permutation <-sample(DeathPenalty2)
+   GSS.table <- table(Educ2, DP.permutation)
+   result[i]<-chisq(GSS.table, print = FALSE)
+ }
+
+#Create a histogram
+ hist(result, xlab = "chi-square statistic", main = "Distribution of chi-square statistic")
+ abline(v = observedChi2, col = "blue", lty = 5)
+ 
+ #Compute P-value
+(sum(result >= observedChi2) + 1)/(N + 1)
+```
+
+Optional: Create a histogram with the density curve
+imposed onto the histogram
+The <tt>`prob = TRUE`</tt> argument scales the histogram to have area 1
+```{r}
+ hist(result, xlab = "chi-square statistic", main="Distribution of chi-square statistic")
+ curve(dchisq(x, df = 4), from = 0, to = 25, col = "green", add = TRUE)
+```
+
+The <tt>`chisq.test`</tt> command also has an option that will perform this permutation test:
+
+```{r}
+chisq.test(Education, DeathPenalty, simulate.p.value = TRUE, B = 10^4 - 1)
+mat <- table(Education, DeathPenalty)
+chisq.test(mat, simulate.p.value = TRUE, B = 10^4-1)
+```
+
+
+
+
+###Example 10.2
+```{r}
+mat <- rbind(c(42, 50), c(30, 87))
+chisq.test(mat)
+```
+
+###Section 10.3.3 Fisher's Exact Test
+
+```{r}
+fisher.test(mat)
+```
+
+###Section 10.4 Test of Homogeneity
+```{r}
+candy.mat <- rbind(c(42, 20, 38), c(33, 27, 50))
+candy.mat
+
+chisq.test(candy.mat)
+```
+
+###Section 10.6
+```{r}
+Phillies2009 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Phillies2009.csv")
+Homeruns <- Phillies2009$Homeruns
+#Homeruns <- subset(Phillies2009, select = Homeruns, drop = TRUE)
+
+lambda <- mean(Homeruns)
+dpois(0:5, lambda)
+table(Homeruns)
+
+table(Homeruns)/162
+```

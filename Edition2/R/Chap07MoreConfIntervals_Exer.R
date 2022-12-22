@@ -1,0 +1,56 @@
+#Chapter 7: More confidence intervals
+#Exercises
+
+#Exericse 9
+FlightDelays <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/FlightDelays.csv")
+mu <- mean(FlightDelays$Delay)
+
+counter <- 0
+plot(c(-20, 100), c(1, 100), type = "n")
+
+for (i in 1:1000)
+{
+ x <- sample(FlightDelays$Delay, 30, replace = FALSE)
+ L <- t.test(x)$conf.int[1]
+ U <- t.test(x)$conf.int[2]
+
+ if (L < mu && mu < U)
+    counter <- counter + 1
+ if (i <= 100)
+   segments(L, i, U, i)
+}
+
+ abline(v = mu, col = "red")
+ counter/1000
+
+#-------------------------------------------------------
+#Exercise 22
+%%Simulation to compare pooled/unpooled t-confidence intervals
+
+pooled.count <- 0
+unpooled.count <- 0
+
+m <- 20
+n <- 10
+
+B <- 10000
+for (i in 1:B)
+{
+    x <- rnorm(m, 8,10)
+    y <- rnorm(n, 3, 15)
+
+    CI.pooled <- t.test(x,y,var.equal=T)$conf
+    CI.unpooled <- t.test(x,y)$conf
+
+    if (CI.pooled[1] < 5 & 5 < CI.pooled[2])
+    pooled.count <- pooled.count + 1
+
+   if (CI.unpooled[1] < 5 & 5 < CI.unpooled[2])
+    unpooled.count <- unpooled.count + 1
+}
+
+pooled.count/B
+
+unpooled.count/B
+
+#-----------------

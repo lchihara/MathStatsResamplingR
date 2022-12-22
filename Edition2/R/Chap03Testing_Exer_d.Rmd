@@ -1,0 +1,50 @@
+---
+title: "Chap03Testing_Exer"
+author: "Chihara-Hesterberg"
+date: "December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width="50%")
+library(dplyr)
+library(ggplot2)
+```
+
+##Chapter 3 Introduction to Hypothesis Testing: Permutation Tests
+##Exercises
+
+###Exercise 7
+```{r}
+FlightDelays <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/FlightDelays.csv")
+
+N<-10^4-1
+UA.Delay <- FlightDelays %>% filter(Carrier == "UA") %>% pull(Delay)
+AA.Delay <- FlightDelays %>% filter(Carrier == "AA") %>% pull(Delay)
+
+observedSumUA <- sum(UA.Delay)
+observedmeanUA <- mean(UA.Delay)
+observedmeanDiff <- mean(UA.Delay) - mean(AA.Delay)
+m <-length(UA.Delay)  #number of UA observations
+
+sumUA<-numeric(N)
+meanUA<-numeric(N)
+meanDiff<-numeric(N)
+
+set.seed(0)
+for (i in 1:N)
+{
+  index <- sample(4029,  m, replace = FALSE)
+  sumUA[i] <- sum(FlightDelays$Delay[index])
+  meanUA[i] <- mean(FlightDelays$Delay[index])
+  meanDiff[i] <- mean(FlightDelays$Delay[index]) - mean(FlightDelays$Delay[-index])
+
+}
+
+(sum(sumUA >= observedSumUA) + 1)/(N + 1)  #P-value
+
+(sum(meanUA >= observedmeanUA) + 1)/(N + 1)  #P-value
+
+(sum(meanDiff >= observedmeanDiff) + 1)/(N + 1)  #P-value
+
+```

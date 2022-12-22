@@ -1,0 +1,198 @@
+---
+title: "Chap 9 Regression"
+author: "Chihara-Hesterberg"
+date: "December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+library(dplyr)
+library(ggplot2)
+```
+
+###Section 9.2
+```{r}
+Spruce <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Spruce.csv")
+
+ggplot(Spruce, aes(x = Di.change, y = Ht.change)) + geom_point()
+
+cor(Spruce$Di.change, Spruce$Ht.change)
+```
+
+###Example 9.3
+```{r}
+spruce.lm <- lm(Di.change ~ Ht.change, data = Spruce)
+spruce.lm
+
+ggplot(Spruce, aes(x = Ht.change, y = Di.change)) + geom_point() +  
+    stat_smooth(method="lm", se = FALSE)
+```
+
+We introduce a new package <tt>`broom`</tt> that performs some __tidying__ of the output of base R's <tt>`lm`</tt> command:
+
+```{r}
+library(broom)
+
+fit <- augment(spruce.lm)
+head(fit, 3)
+```
+In particular, note that we now have a data set that, in addition to the original variables, also contains a column of the fitted (predicted) values and the residuals.
+
+To create a residual plot:
+
+```{r}
+ggplot(fit, aes(x=Ht.change, y = .resid)) + geom_point() +
+   geom_hline(yintercept = 0) + labs(y = "residuals")
+```
+
+To add a __smoother__ line to the residual plot, use the <tt>`stat_smooth()`</tt> command:
+
+```{r}
+ggplot(fit, aes(x = Ht.change, y = .resid)) + geom_point() + stat_smooth(method = loess, se = FALSE) + geom_hline(yintercept = 0)
+```
+
+###Example 9.8
+```{r}
+Skating2010 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Skating2010.csv")
+skate.lm <- lm(Free ~ Short, data = Skating2010)
+summary(skate.lm)
+```
+
+###Section 9.5
+
+```{r}
+N <- 10^4
+cor.boot <- numeric(N)
+beta.boot <- numeric(N)
+alpha.boot <- numeric(N)
+yPred.boot <- numeric(N)
+n <- 24       #number of skaters
+for (i in 1:N)
+ {
+  index <- sample(n, replace = TRUE)    #sample f rom 1, 2, ... n
+  Skate.boot <- Skating2010[index, ]
+
+  cor.boot[i] <- cor(Skate.boot$Short, Skate.boot$Free)
+
+  #recalculate linear model estimates
+  skateBoot.lm <- lm(Free ~ Short, data = Skate.boot)
+  alpha.boot[i] <- coef(skateBoot.lm)[1]   # new intercept
+  beta.boot[i] <- coef(skateBoot.lm)[2]    # new slope
+  yPred.boot[i] <- alpha.boot[i] + 60 * beta.boot[i]  #recompute Y^
+  }
+
+  mean(cor.boot)
+  sd(cor.boot)
+  quantile(cor.boot, c(0.025, 0.975))
+
+  
+   observed <- cor(Skating2010$Short, Skating2010$Free)
+   
+  ggplot() + geom_histogram(aes(cor.boot), bins = 12) + 
+    labs(title = "Bootstrap distribution of correlation", x = "Correlation") + 
+    geom_vline(xintercept = observed, colour = "blue")
+```
+
+### Section 9.5.1 Permutation test
+
+```{r}
+ N <- 10^5 - 1
+ n <- nrow(Skating2010)   #number of observations
+ result <- numeric(N)
+ observed <- cor(Skating2010$Short, Skating2010$Free)
+ for (i in 1:N)
+ {
+   index <- sample(n , replace = FALSE)
+   Short.permuted <- Skating2010$Short[index]
+   result[i] <- cor(Short.permuted, Skating2010$Free)
+ }
+
+ (sum(observed <= result) + 1)/(N+1)    #P-value
+```
+
+
+###Chapter 9.6.1 Inference for logistic regression
+
+```{r}
+Fatalities <-read.csv("http://sites.google.com/site/chiharahesterberg/data2/Fatalities.csv")
+
+ fit <- glm(Alcohol ~ Age, data = Fatalities, family = binomial)
+ data.class(fit)  # is a "glm" object, so for help use:
+ help(glm)
+
+ fit          # prints the coefficients and other basic info
+ coef(fit)    # the coefficients as a vector
+ summary(fit) # gives standard errors for coefficients, etc.
+
+ x <- seq(17, 91, length = 500) # vector spanning the age range
+ # compute predicted probabilities
+ y1 <- exp(-.123 - .029*x) / (1 + exp(-.123 - .029*x))
+ y2 <- plogis(coef(fit)[1] + coef(fit)[2] * x)
+ 
+ my.fun <- function(x, lm.object){
+   plogis(coef(lm.object)[1] + coef(lm.object)[2]*x)
+ }
+
+ ggplot(Fatalities, aes(x=Age, y = Alcohol)) + geom_point() + 
+    stat_function(fun = my.fun, args=list(lm.object = fit))
+
+```
+
+
+#### Full bootstrap - slope coefficient, and prediction at age 20
+```{r}
+ N <- 10^3
+ n <- nrow(Fatalities)                   # number of observations
+ alpha.boot <- numeric(N)
+ beta.boot <- numeric(N)
+ pPred.boot <- numeric(N)
+
+ for (i in 1:N)
+ {
+   index <- sample(n, replace = TRUE)
+   Fatal.boot <- Fatalities[index, ]     # resampled data
+
+   fit.boot <- glm(Alcohol ~ Age, data = Fatal.boot,
+                   family = binomial)
+   alpha.boot[i] <- coef(fit.boot)[1]    # new intercept
+   beta.boot[i] <- coef(fit.boot)[2]     # new slope
+   pPred.boot[i] <- plogis(alpha.boot[i] + 20 * beta.boot[i])
+ }
+
+ quantile(beta.boot, c(.025, .975))      # 95% percentile intervals
+ quantile(pPred.boot, c(.025, .975))
+
+ library(gridExtra)
+ 
+ p1 <- ggplot() + geom_histogram(aes(beta.boot), bins = 12) + labs(x = "beta")
+ p2 <- ggplot() + stat_qq(aes(sample = beta.boot))
+ p3 <- ggplot() + geom_histogram(aes(pPred.boot), bins = 12) + labs(x = "p^")
+ p4 <- ggplot() + stat_qq(aes(sample = pPred.boot))
+ grid.arrange(p1, p2, p3, p4)
+```
+
+
+```{r}
+ n <- nrow(Fatalities)             # number of observations
+ x <- seq(17, 91, length = 500)      # vector spanning the age range
+ df.Age <- data.frame(Age = x)     # data frame to hold 
+   # explanatory variables, will use this for making predictions
+
+ p <- ggplot(Fatalities, aes(x= Age, y = Alcohol)) + geom_point() + 
+     labs(y = "Probability of alcohol")
+ 
+ for (i in 1:25)
+ {
+   index <- sample(n, replace = TRUE)
+   Fatal.boot <- Fatalities[index, ]     # resampled data
+
+   fit.boot <- glm(Alcohol ~ Age, data = Fatal.boot,
+                   family = binomial)
+   df.Age$pPred <- predict(fit.boot, newdata = df.Age, type = "response")
+   p <- p + geom_line(data = df.Age, aes(x = Age, y = pPred))
+ }
+ 
+ print(p)
+```
+

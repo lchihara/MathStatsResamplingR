@@ -1,0 +1,151 @@
+---
+title: "Chap 10 Categorical Data"
+author: "Chihara-Hesterberg"
+date: "December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+library(ggplot2)
+library(dplyr)
+```
+
+###Section 10.2
+
+Here is a function that computes the chi-square test statistic
+
+The code below gives a function that is a bit more enhanced than the code in the textbook:
+```{r}
+chisq <- function(observed, print = TRUE) {
+  # Chi-square statistic for independence in a contingency table,
+  # with related data exploration.
+  # observed is the observed contingency table
+
+  observedWithTotals <- cbind(observed, total = rowSums(observed))
+  observedWithTotals <- rbind(observedWithTotals, total = colSums(observedWithTotals))
+  expected <- outer(rowSums(observed), colSums(observed)) / sum(observed)
+  statistic <- sum((observed-expected)^2/expected)
+  if (print){
+  cat("Observed, with totals:\n")
+  print(observedWithTotals)
+  cat("\nRow Fractions:\n")
+  print(round(observed / rowSums(observed), 3))
+  cat("\nColumn Fractions:\n")
+  print(round(observed / rep(colSums(observed), each = nrow(observed)), 3))
+
+  cat("\nExpected:\n")
+  print(round(expected, 1))
+  cat("\nDifference:\n")
+  print(round(observed - expected, 1))
+
+  cat("\nChi-squared statistic for independence:", round(statistic, 1), "\n")
+}
+  return(invisible(statistic))
+}
+```
+Import the General Social Survey data. We are interested in the two variables, <tt>`Education`</tt> and <tt>`DeathPenalty`</tt>.
+
+Using the <tt>`str()`</tt> command, we note that these two variables have missing values. We will create a new data frame which contains just the two variables of interest and also, only contains the rows without NA's.
+
+```{r}
+GSS2002 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/GSS2002.csv")
+
+str(GSS2002)
+
+df <- GSS2002 %>% 
+       select(Education, DeathPenalty) %>% 
+       filter(!is.na(Education) & !is.na(DeathPenalty))
+
+Education <- pull(df, Education)
+DeathPenalty <- pull(df, DeathPenalty)
+
+table(Education, DeathPenalty)
+```
+
+<tt>`Education`</tt> is a factor variable and the default ordering of the levels is alphabetical. We use the <tt>`ordered`</tt> command to *order* the levels.
+
+```{r}
+Education <- ordered(Education, levels = c("Left HS", "HS", "Jr Col", "Bachelors", "Graduate"))                    
+table(Education, DeathPenalty)
+```
+
+
+Use function created above to calculate chi-square test statistic
+
+```{r}
+observedChi2 <- chisq(table(Education, DeathPenalty))
+observedChi2
+```
+
+Now run the permutation test
+
+```{r}
+N <- 10^4-1
+result<-numeric(N)
+
+for (i in 1:N)
+ {
+   DP.permutation <-sample(DeathPenalty)
+   GSS.table <- table(Education, DP.permutation)
+   result[i]<-chisq(GSS.table, print = FALSE)
+ }
+
+ggplot() + geom_histogram(aes(result)) + 
+   labs(title = "Distribution of chi-square statistics", x = "chi-square statistic") + 
+   geom_vline(xintercept = observedChi2, colour = "blue")
+
+(sum(result >= observedChi2) + 1)/(N + 1)
+```
+
+
+Optional: Create a histogram with the density curve
+imposed onto the histogram. The <tt>ggplot()</tt> command will require a data frame which contains the variable of interest.
+
+```{r}
+df <- data.frame(result)
+ggplot(df) + geom_histogram(aes(result, y = stat(density))) + 
+   labs(title = "Distribution of chi-square statistics", x = "chi-square statistic") +   
+   geom_vline(xintercept = observedChi2, colour = "blue") +
+   stat_function(fun = dchisq, args = list(df = 4), colour = "green")
+```
+
+The <tt>`chisq.test`</tt> command also has an option that will perform this permutation test:
+
+```{r}
+chisq.test(Education, DeathPenalty, simulate.p.value = TRUE, B = 10^4 - 1)
+mat <- table(Education, DeathPenalty)
+chisq.test(mat, simulate.p.value = TRUE, B = 10^4-1)
+```
+
+###Example 10.2
+```{r}
+mat <- rbind(c(42, 50), c(30, 87))
+chisq.test(mat)
+```
+
+###Section 10.3.3 Fisher's Exact Test
+
+```{r}
+fisher.test(mat)
+```
+
+###Section 10.4 Test of Homogeneity
+```{r}
+candy.mat <- rbind(c(42, 20, 38), c(33, 27, 50))
+candy.mat
+
+chisq.test(candy.mat)
+```
+
+###Section 10.6
+```{r}
+Phillies2009 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Phillies2009.csv")
+Homeruns <- pull(Phillies2009, Homeruns)
+
+lambda <- mean(Homeruns)
+dpois(0:5, lambda)
+table(Homeruns)
+
+table(Homeruns)/162
+```

@@ -1,0 +1,343 @@
+---
+title: "Chapter 5 Bootstrap"
+author: "Chihara-Hesterberg"
+date: "November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "50%")
+library(dplyr)
+library(ggplot2)
+```
+
+###Example 5.2
+```{r}
+my.sample <- rgamma(16, 1, 1/2)
+
+N <- 10^5
+my.boot <- numeric(N)
+for (i in 1:N)
+ {
+  x <- sample(my.sample, 16, replace = TRUE)  #draw resample
+  my.boot[i] <- mean(x)                     #compute mean, store in my.boot
+  }
+
+ggplot() + geom_histogram(aes(my.boot), bins=15)
+
+mean(my.boot)  #mean
+sd(my.boot)    #bootstrap SE
+```
+
+###Example 5.3
+
+Arsenic in wells in Bangladesh
+```{r}
+Bangladesh <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Bangladesh.csv")
+
+ggplot(Bangladesh, aes(Arsenic)) + geom_histogram(bins = 15)
+
+ggplot(Bangladesh, aes(sample = Arsenic)) + stat_qq() + stat_qq_line()
+
+Arsenic <- pull(Bangladesh, Arsenic)
+#Alternatively
+#Arsenic <- Bangladesh$Arsenic
+
+n <- length(Arsenic)
+N <- 10^4
+
+arsenic.mean <- numeric(N)
+
+for (i in 1:N)
+{
+   x <- sample(Arsenic, n, replace = TRUE)
+   arsenic.mean[i] <- mean(x)
+}
+
+ggplot() + geom_histogram(aes(arsenic.mean), bins = 15) + 
+  labs(title="Bootstrap distribution of means") + 
+  geom_vline(xintercept = mean(Arsenic), colour = "blue")
+
+df <- data.frame(x = arsenic.mean)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(arsenic.mean)                 #bootstrap mean
+mean(arsenic.mean) - mean(Arsenic) #bias
+sd(arsenic.mean)                   #bootstrap SE
+
+sum(arsenic.mean > 161.3224)/N
+sum(arsenic.mean < 89.75262)/N
+```
+
+###Example 5.4 Skateboard
+```{r}
+Skateboard <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Skateboard.csv")
+
+testF <- Skateboard %>% filter(Experimenter == "Female") %>% pull(Testosterone)
+testM <- Skateboard %>% filter(Experimenter == "Male") %>% pull(Testosterone)
+
+observed <- mean(testF) - mean(testM)
+
+nf <- length(testF)
+nm <- length(testM)
+
+N <- 10^4
+
+TestMean <- numeric(N)
+
+for (i in 1:N)
+{
+  sampleF <- sample(testF, nf, replace = TRUE)
+  sampleM <- sample(testM, nm, replace = TRUE)
+  TestMean[i] <- mean(sampleF) - mean(sampleM)
+}
+
+df <- data.frame(TestMean)
+ggplot(df) + geom_histogram(aes(TestMean), bins = 15) + 
+  labs(title = "Bootstrap distribution of difference in means", xlab = "means") +
+  geom_vline(xintercept = observed, colour = "blue")
+
+ggplot(df, aes(sample = TestMean))  + stat_qq() + stat_qq_line()
+
+mean(testF) - mean(testM)
+mean(TestMean)
+sd(TestMean)
+
+quantile(TestMean,c(0.025,0.975))
+
+mean(TestMean)- observed  #bias
+```
+
+###Permutation test for Skateboard means
+```{r}
+testAll <- pull(Skateboard, Testosterone)
+#testAll <- Skateboard$Testosterone
+
+N <- 10^4 - 1  #set number of times to repeat this process
+
+#set.seed(99)
+result <- numeric(N) # space to save the random differences
+for(i in 1:N)
+  {
+  index <- sample(71, size = nf, replace = FALSE) #sample of numbers from 1:71
+  result[i] <- mean(testAll[index]) - mean(testAll[-index])
+}
+
+(sum(result >= observed)+1)/(N + 1)  #P-value
+
+ggplot() + geom_histogram(aes(result), bins = 15) + 
+  labs(x = "xbar1-xbar2", title="Permutation distribution for testosterone levels") +
+  geom_vline(xintercept = observed, colour = "blue")
+
+df <- data.frame(result)
+ggplot(df, aes(sample = result)) + stat_qq() + stat_qq_line()
+
+```
+
+###Section 5.4.1 
+Matched pairs for Diving data
+
+```{r}
+Diving2017 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Diving2017.csv")
+Diff <- Diving2017 %>% mutate(Diff = Final - Semifinal) %>% pull(Diff)
+#alternatively
+#Diff <- Diving2017$Final - Diving2017$Semifinal
+n <- length(Diff)
+
+N <- 10^5
+result <- numeric(N)
+
+for (i in 1:N)
+{
+  dive.sample <- sample(Diff, n, replace = TRUE)
+  result[i] <- mean(dive.sample)
+}
+
+ggplot() + geom_histogram(aes(result), bins = 15)
+
+quantile(result, c(0.025, 0.975))
+```
+
+
+###Example 5.5 
+Verizon cont.
+Bootstrap means for the ILEC data and for the CLEC data
+
+Bootstrap difference of means.
+```{r}
+Verizon <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Verizon.csv")
+
+Time.ILEC <- Verizon %>% filter(Group == "ILEC") %>% pull(Time)
+Time.CLEC <- Verizon %>% filter(Group == "CLEC") %>% pull(Time)
+
+observed <- mean(Time.ILEC) - mean(Time.CLEC)
+
+n.ILEC <- length(Time.ILEC)
+n.CLEC <- length(Time.CLEC)
+
+N <- 10^4
+
+time.ILEC.boot <- numeric(N)
+time.CLEC.boot <- numeric(N)
+time.diff.mean <- numeric(N)
+
+set.seed(100)
+for (i in 1:N)
+ {
+  ILEC.sample <- sample(Time.ILEC, n.ILEC, replace = TRUE)
+  CLEC.sample <- sample(Time.CLEC, n.CLEC, replace = TRUE)
+  time.ILEC.boot[i] <- mean(ILEC.sample)
+  time.CLEC.boot[i] <- mean(CLEC.sample)
+  time.diff.mean[i] <- mean(ILEC.sample) - mean(CLEC.sample)
+}
+
+#bootstrap for ILEC
+ggplot() + geom_histogram(aes(time.ILEC.boot), bins = 15) + 
+  labs(title = "Bootstrap distribution of ILEC means", x = "means") + 
+  geom_vline(xintercept = mean(Time.ILEC), colour = "blue") + 
+  geom_vline(xintercept = mean(time.ILEC.boot), colour = "red", lty=2)
+
+summary(time.ILEC.boot)
+
+df <- data.frame(x = time.ILEC.boot)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+#bootstrap for CLEC
+ggplot() + geom_histogram(aes(time.CLEC.boot), bins = 15) + 
+  labs(title = "Bootstrap distribution of CLEC means", x = "means") + 
+  geom_vline(xintercept = mean(Time.CLEC), colour = "blue") + 
+  geom_vline(xintercept = mean(time.CLEC.boot), colour = "red", lty = 2)
+
+df <- data.frame(x = time.CLEC.boot)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+#Different in means
+ggplot() + geom_histogram(aes(time.diff.mean), bins = 15) + 
+  labs(title = "Bootstrap distribution of difference in means", x = "means") +
+  geom_vline(xintercept = mean(time.diff.mean), colour = "blue") + 
+  geom_vline(xintercept = mean(observed), colour = "red", lty = 2)
+
+df <- data.frame(x = time.diff.mean)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(time.diff.mean)
+quantile(time.diff.mean, c(0.025, 0.975))
+
+```
+
+###Section 5.5 
+Verizon cont.
+
+Bootstrap difference in trimmed means
+
+```{r}
+Time.ILEC <- Verizon %>% filter(Group == "ILEC") %>% pull(Time)
+Time.CLEC <- Verizon %>% filter(Group == "CLEC") %>% pull(Time)
+n.ILEC <- length(Time.ILEC)
+n.CLEC <- length(Time.CLEC)
+
+N <- 10^4
+time.diff.trim <- numeric(N)
+
+#set.seed(100)
+for (i in 1:N)
+{
+  x.ILEC <- sample(Time.ILEC, n.ILEC, replace = TRUE)
+  x.CLEC <- sample(Time.CLEC, n.CLEC, replace = TRUE)
+  time.diff.trim[i] <- mean(x.ILEC, trim = .25) - mean(x.CLEC, trim = .25)
+}
+
+ggplot() + geom_histogram(aes(time.diff.trim), bins = 15) + 
+  labs(x = "difference in trimmed means") + 
+  geom_vline(xintercept = mean(time.diff.trim),colour = "blue") + 
+  geom_vline(xintercept = mean(Time.ILEC, trim = .25) - mean(Time.CLEC, trim = .25), colour = "red", lty = 2)
+
+df <- data.frame(x = time.diff.trim)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(time.diff.trim)
+quantile(time.diff.trim, c(0.025,0.975))
+```
+
+###Section 5.5 Other statistics
+Verizon cont: 
+
+Bootstrap of the ratio of means
+
+<tt>`Time.ILEC`</tt> and <tt>`Time.CLEC`</tt> created above.
+
+<tt>`n.ILEC`</tt>, <tt>`n.CLEC`</tt> created above
+
+```{r}
+N <- 10^4
+time.ratio.mean <- numeric(N)
+
+#set.seed(100)
+for (i in 1:N)
+{
+  ILEC.sample <- sample(Time.ILEC, n.ILEC, replace = TRUE)
+  CLEC.sample <- sample(Time.CLEC, n.CLEC, replace = TRUE)
+  time.ratio.mean[i] <- mean(ILEC.sample)/mean(CLEC.sample)
+}
+
+ggplot() + geom_histogram(aes(time.ratio.mean), bins = 12) + 
+  labs(title = "bootstrap distribution of ratio of means", x = "ratio of means") +
+  geom_vline(xintercept = mean(time.ratio.mean), colour = "red", lty = 2) + 
+  geom_vline(xintercept  = mean(Time.ILEC)/mean(Time.CLEC), col = "blue")
+
+df <- data.frame(x = time.ratio.mean)
+ggplot(df, aes(sample = x)) + stat_qq() + stat_qq_line()
+
+mean(time.ratio.mean)
+sd(time.ratio.mean)
+quantile(time.ratio.mean, c(0.025, 0.975))
+```
+
+###Example 5.7 Relative risk example
+```{r}
+highbp <- rep(c(1,0),c(55,3283))   #high blood pressure
+lowbp <- rep(c(1,0),c(21,2655))    #low blood pressure
+
+N <- 10^4
+boot.rr <- numeric(N)
+high.prop <- numeric(N)
+low.prop <- numeric(N)
+
+for (i in 1:N)
+{
+   x.high <- sample(highbp,3338, replace = TRUE)
+   x.low  <- sample(lowbp, 2676, replace = TRUE)
+   high.prop[i] <- sum(x.high)/3338
+   low.prop[i]  <- sum(x.low)/2676
+   boot.rr[i] <- high.prop[i]/low.prop[i]
+}
+
+ci <- quantile(boot.rr, c(0.025, 0.975))
+
+ggplot() + geom_histogram(aes(boot.rr), bins = 15) + 
+  labs(title = "Bootstrap distribution of relative risk", x = "relative risk") +
+  geom_vline(aes(xintercept = mean(boot.rr), colour = "mean of bootstrap")) +
+  geom_vline(aes(xintercept = 2.12, colour="observed rr"), lty = 2) + 
+  scale_colour_manual(name="", values = c("mean of bootstrap"="blue", "observed rr" = "red"))
+
+temp <- ifelse(high.prop < 1.31775*low.prop, 1, 0)
+temp2 <- ifelse(high.prop > 3.687*low.prop, 1, 0)
+temp3 <- temp + temp2
+
+df <- data.frame(y=high.prop, x=low.prop, temp, temp2, temp3)
+df1 <- df %>% filter(temp == 1)
+df2 <- df %>% filter (temp2 == 1)
+df3 <- df %>% filter(temp3 == 0)
+
+ggplot(df, aes(x=x, y = y)) + 
+  geom_point(data =df1, aes(x= x, y = y), colour = "green") + 
+  geom_point(data = df2, aes(x = x, y = y), colour = "green") + 
+  geom_point(data = df3, aes(x = x, y = y), colour = "red") + 
+  geom_vline(aes(xintercept = mean(low.prop)), colour = "red") +
+  geom_hline(yintercept = mean(high.prop), colour = "red") + 
+  geom_abline(aes(intercept = 0, slope = 2.12, colour = "observed rr"), lty = 2, lwd = 1) + 
+  geom_abline(aes(intercept = 0, slope = ci[1], colour = "bootstrap CI"), lty = 2, lwd = 1) + 
+  geom_abline(intercept = 0, slope = ci[2], colour = "blue", lty = 2, lwd = 1) +
+  scale_colour_manual(name="", values=c("observed rr"="black", "bootstrap CI" = "blue")) +
+  labs(x = "Proportion in low blood pressure group", y = "Proportion in high blood pressure group")
+```

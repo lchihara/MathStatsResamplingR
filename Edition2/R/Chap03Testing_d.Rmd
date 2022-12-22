@@ -1,0 +1,225 @@
+---
+title: "Chapter 3 Introduction to Hypothesis Testing"
+author: "Chihara-Hesterberg"
+date: "November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width="50%")
+library(ggplot2)
+library(dplyr)
+```
+
+##Permutation Tests
+
+###Section 3.3
+```{r}
+Beerwings <- read.csv("https://sites.google.com/site/chiharahesterberg/data2/Beerwings.csv")
+
+Beerwings %>% group_by(Gender) %>% summarize(mean(Hotwings))
+
+observed <- 14.5333- 9.3333 #store observed mean differences
+
+#Get hotwings variable
+hotwings <- pull(Beerwings, Hotwings)
+
+#alternatively, using "piping" operator
+hotwings <- Beerwings %>% pull(Hotwings)
+```
+
+
+```{r}
+#set.seed(0)
+ N <- 10^5 - 1  #set number of times to repeat this process
+ result <- numeric(N) # space to save the random differences
+ for(i in 1:N)
+{
+  index <- sample(30, size = 15, replace = FALSE) # sample of numbers from 1:30
+  result[i] <- mean(hotwings[index]) - mean(hotwings[-index])
+}
+
+ggplot() + geom_histogram(aes(result)) + geom_vline(xintercept=observed, colour = "red")
+
+```
+
+Another visualization of distribution.
+```{r}
+ggplot() + stat_ecdf(aes(result)) + geom_vline(xintercept = observed, colour = "red")
+```
+
+Compute P-value.
+```{r}
+(sum(result >= observed) + 1)/(N + 1)  #P-value
+```
+
+
+###Example 3.4 Verizon
+###Permutation test
+
+```{r}
+Verizon <- read.csv("https://sites.google.com/site/chiharahesterberg/data2/Verizon.csv")
+
+Verizon %>% group_by(Group) %>% summarize(mean(Time))
+
+Time <- Verizon %>% pull(Time)
+Time.ILEC <- Verizon %>% filter(Group == "ILEC") %>% pull(Time)
+Time.CLEC <- Verizon %>% filter(Group == "CLEC") %>% pull(Time)
+
+observed <- mean(Time.ILEC) - mean(Time.CLEC)
+observed
+
+N <- 10^4-1  #set number of times to repeat this process
+#set.seed(99)
+result <- numeric(N) # space to save the random differences
+for(i in 1:N)
+{
+  index <- sample(1687, size = 1664, replace = FALSE) #sample of numbers from 1:1687
+  result[i] <- mean(Time[index]) - mean(Time[-index])
+}
+
+ggplot() + geom_histogram(aes(result)) + geom_vline(xintercept=observed, colour="red")+
+ xlab("xbar1-xbar2")
+
+(sum(result <= observed) + 1)/(N + 1)  #P-value
+
+```
+
+###Example 3.6, Verizon cont.
+
+median, trimmed means
+
+```{r}
+Verizon %>% group_by(Group) %>% summarize(median(Time))
+
+#Difference in means
+observed <- median(Time.ILEC) - median(Time.CLEC)
+observed
+
+#Differnce in trimmed means
+observed2 <- mean(Time.ILEC, trim = .25) - mean(Time.CLEC, trim = .25)
+observed2
+
+N <- 10^4-1  #set number of times to repeat this process
+#set.seed(99)
+result  <- numeric(N) # space to save the random differences
+result2 <- numeric(N)
+for(i in 1:N)
+{
+  index <- sample(1687, size=1664, replace = FALSE) #sample of numbers from 1:1687
+  result[i] <- median(Time[index]) - median(Time[-index])
+  result2[i] <- mean(Time[index], trim = .25) - mean(Time[-index], trim = .25)
+}
+
+ggplot() + geom_histogram(aes(result)) + geom_vline(xintercept=observed, colour="red") +
+   xlab("median1-median2")
+
+#P-value difference in means
+(sum(result <= observed) + 1)/(N+ 1)
+
+ggplot() + geom_histogram(aes(result2)) + geom_vline(xintercept=observed2, colour="red") +   xlab("trimmedMean1-trimmedMean2")
+
+#P-value difference in trimmed means
+(sum(result2 <= observed2) + 1)/(N+ 1)
+```
+
+###Example 3.6, Verzion continued
+
+difference in proportion of time > 10
+and ratio of variances
+```{r}
+observed3 <- mean(Time.ILEC > 10) - mean(Time.CLEC > 10)
+observed3
+
+#ratio of variances
+observed4 <- var(Time.ILEC)/var(Time.CLEC)
+observed4
+
+N <- 10^4-1  #set number of times to repeat this process
+#set.seed(99)
+ result3 <- numeric(N)
+ result4 <- numeric(N)
+
+ for(i in 1:N) {
+  index <- sample(1687, size = 1664, replace = FALSE)
+  result3[i] <- mean(Time[index] > 10) - mean(Time[-index] > 10)
+  result4[i] <- var(Time[index])/var(Time[-index])
+  }
+
+ ggplot() + geom_histogram(aes(result3)) + geom_vline(xintercept=observed3, colour="red") + xlab("difference in proportions")
+
+#P-value difference in means
+(sum(result3 <= observed3) + 1)/(N+ 1)
+ 
+```
+
+Results for ratio of variances:
+```{r}
+ggplot() + geom_histogram(aes(result4)) + geom_vline(xintercept=observed4, colour="red") +   xlab("variance1/variance2")
+
+(sum(result4 <= observed4) + 1)/(N+ 1)  #P-value
+```
+
+###Example 3.8
+```{r}
+Recidivism <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Recidivism.csv")
+```
+There are some missing values in the variable <tt> `Age25`</tt>. The <tt> `complete.cases`</tt> command gives the row numbers where values are not missing. We create a new data frame omitting the rows where there is a missing value in the <tt> 'Age25' </tt> variable.
+```{r}
+temp <- Recidivism %>% filter(complete.cases(Age25))
+```
+
+ Also, the variable <tt>`Recid`</tt> is a factor variable coded "Yes" or "No". We convert it to a numeric variable of 1's and 0's. The command below results in a new column added to <tt>temp</tt> called <tt>'Recid2`</tt>.
+```{r}
+temp <- temp %>% mutate(Recid2 = ifelse(Recid=="Yes", 1, 0))
+head(temp, 2)   #inspect first few rows
+
+temp %>% group_by(Age25) %>% summarize(mean(Recid2))
+
+observed <- .365 - .306
+
+Recid2 <- pull(temp, Recid2)   #extract column vector 
+N <- 10^4 - 1
+result <- numeric(N)
+
+for (i in 1:N)
+{
+  index <- sample(17019, size = 3077, replace = FALSE)
+  result[i] <- mean(Recid2[index]) - mean(Recid2[-index])
+}
+
+2* (sum(result >= observed) + 1)/(N + 1)
+```
+
+
+###Section 3.4 Matched Pairs
+
+Results from a diving championship.
+
+```{r}
+Diving2017 <- read.csv("http://sites.google.com/site/chiharahesterberg/data2/Diving2017.csv")
+
+Diving2017 <- Diving2017 %>% mutate(Diff = Final - Semifinal)
+head(Diving2017)   #inspect modified data frame
+
+Diff <- pull(Diving2017, Diff)  #extract vector
+
+#Diff <- Diving %>% pull(Diff)   #alternative syntax
+
+observed <- mean(Diff)
+
+N <- 10^5 - 1
+result <- numeric(N)
+
+for (i in 1:N)
+{
+  Sign <- sample(c(-1, 1), 12, replace = TRUE)
+  Diff2 <- Sign*Diff
+  result[i] <- mean(Diff2)
+}
+
+ggplot() + geom_histogram(aes(result)) + geom_vline(xintercept = observed, colour="red") + xlab("Difference")
+
+2* (sum(result >= observed) + 1)/(N + 1)
+```
+

@@ -1,0 +1,62 @@
+#Chapter 8 More Hypothesis Tests
+#Exercises
+
+#Exercise 13
+m <- 30
+n <- 30
+sigma1 <- 5
+sigma2 <- 5
+
+pooled.count <- 0
+unpooled.count <- 0
+
+for (i in 1:10^5)
+{
+  x <- rnorm(m, 30, 5)
+  y <- rnorm(n, 30, 5)
+
+  p.pooled <- t.test(x, y, var.equal = TRUE)$p.value
+  p.unpooled <- t.test(x, y)$p.value
+
+  pooled.count <- pooled.count + (p.pooled < 0.05)
+  unpooled.count <- unpooled.count + (p.unpooled < 0.05)
+}
+
+pooled.count/10^5
+unpooled.count/10^5
+
+#-------------------------------------------
+#Exercise 21
+
+n1 <- 100
+n2 <- 100
+N <- 10^4
+p <- 0.1
+
+x1 <- rbinom(N, size = n1, p)
+x2 <- rbinom(N, size = n2, p)
+
+phat <- (x1 + x2)/(n1 + n2)
+propDiff <- x1/n1 - x2/n2
+
+SE <- sqrt(phat * (1 - phat)*(1/n1 + 1/n2))
+
+qqnorm(propDiff/SE)
+abline(0, 1, col = "lightgray")
+
+#Exercise 40
+
+N <- 10^4
+tstat <- numeric(N)
+for (i in 1:N)
+{
+  w <- rnorm(30, 7, 1)
+  tstat[i] <- (mean(w) - 5)* sqrt(30)
+}
+
+
+hist(tstat, prob = TRUE)
+curve(dt(x, df = 29), from = 0, to = 20, add = TRUE)
+
+curve(dt(x , df = 29, ncp = 10.95), from = 0, to = 20,
+         col = "blue", add = TRUE)
